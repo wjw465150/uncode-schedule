@@ -333,12 +333,6 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
         try {
           if (ZKScheduleManager.getInstance().getZkManager().isZookeeperConnected() && ZKScheduleManager.getInstance().isRegisted()) {
             isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(name, ZKScheduleManager.getInstance().getScheduleServerUUid());
-            ZKScheduleManager.getInstance().getIsOwnerMap().put(name, isOwner);
-          } else {
-            // 如果zk不可用，使用历史数据
-            if (null != ZKScheduleManager.getInstance().getIsOwnerMap()) {
-              isOwner = ZKScheduleManager.getInstance().getIsOwnerMap().get(name) == null ? false : true;
-            }
           }
         } catch (org.apache.zookeeper.KeeperException.NoNodeException ex) { //@wjw_note: NoNodeException异常说明系统还没有初始化好,忽略此异常!
         } catch (Exception e) {
@@ -346,7 +340,7 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
         }
         if (isOwner) {
           ReflectionUtils.invokeMethod(setResultMethod, context, this.methodInvoker.invoke());
-          LOGGER.info("Cron job has been executed.");
+          LOGGER.debug("Cron job has been executed.");
         }
       } catch (InvocationTargetException ex) {
         if (ex.getTargetException() instanceof JobExecutionException) {

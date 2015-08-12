@@ -44,7 +44,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   protected ZKManager zkManager;
 
   private IScheduleDataManager scheduleDataManager;
-  
+
   private static ZKScheduleManager instance = null;
 
   /**
@@ -69,8 +69,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
   private ApplicationContext applicationcontext;
 
-  private Map<String, Boolean> isOwnerMap = new ConcurrentHashMap<String, Boolean>();
-
   private Timer hearBeatTimer;
   protected Lock initLock = new ReentrantLock();
   protected boolean isStopSchedule = false;
@@ -82,11 +80,11 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   public ZKScheduleManager() {
     this.currenScheduleServer = ScheduleServer.createScheduleServer(null);
   }
-  
+
   public static ZKScheduleManager getInstance() {
     return instance;
   }
-  
+
   @Override
   public void afterPropertiesSet() {
     super.afterPropertiesSet();
@@ -182,7 +180,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         }
         return;
       }
-      
+
       // 先发送心跳信息
       if (errorMessage != null) {
         this.currenScheduleServer.setDealInfoDesc(errorMessage);
@@ -233,7 +231,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
   /**
    * 定时向Zookeeper更新当前服务器的心跳信息。<br/>
-   * 如果发现本次更新的时间如果已经超过了服务器死亡的心跳周期， 则不能再向Zookeeper更新信息,而应该当作新的ScheduleServer，进行重新注册。
+   * 如果发现本次更新的时间如果已经超过了服务器死亡的心跳周期，
+   * 则不能再向Zookeeper更新信息,而应该当作新的ScheduleServer，进行重新注册。
    * 
    * @throws Exception
    */
@@ -291,12 +290,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
             }
             if (zkManager.isZookeeperConnected()) {
               isOwner = scheduleDataManager.isOwner(name, currenScheduleServer.getUuid());
-              isOwnerMap.put(name, isOwner);
-            } else {
-              // 如果zk不可用，使用历史数据
-              if (null != isOwnerMap) {
-                isOwner = isOwnerMap.get(name);
-              }
             }
           } catch (Exception e) {
             LOGGER.error("Check task owner error.", e);
@@ -427,10 +420,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
       return currenScheduleServer.getUuid();
     }
     return null;
-  }
-
-  public Map<String, Boolean> getIsOwnerMap() {
-    return isOwnerMap;
   }
 
   public boolean isRegisted() {

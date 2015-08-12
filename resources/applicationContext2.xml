@@ -11,7 +11,7 @@
 	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
 		<property name="zkConfig">
 			<map>
-				<entry key="zkConnectString" value="localhost:2181" />
+				<entry key="zkConnectString" value="192.168.2.100:2181" />
 				<entry key="rootPath" value="/schedule/dev" />
 				<entry key="zkSessionTimeout" value="60000" />
 				<entry key="userName" value="ScheduleAdmin" />

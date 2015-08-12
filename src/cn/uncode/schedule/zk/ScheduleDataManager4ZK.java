@@ -40,9 +40,9 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
   private static final String NODE_SERVER = "server";
   private static final String NODE_TASK = "task";
   private static final long SERVER_EXPIRE_TIME = 5000 * 3;
-  
+
   private ZKManager zkManager;
-  
+
   private Gson gson;
   private String pathServer;
   private String pathTask;
@@ -59,7 +59,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     if (this.getZooKeeper().exists(this.pathServer, false) == null) {
       ZKTools.createPath(getZooKeeper(), this.pathServer, CreateMode.PERSISTENT, this.zkManager.getAcl());
     }
-    
+
     loclaBaseTime = System.currentTimeMillis();
     String tempPath = this.zkManager.getZooKeeper().create(this.zkManager.getRootPath() + "/systime", null, this.zkManager.getAcl(), CreateMode.EPHEMERAL_SEQUENTIAL);
     Stat tempStat = this.zkManager.getZooKeeper().exists(tempPath, false);
@@ -89,7 +89,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
       server.setRegisted(false);
       return false;
     }
-    
+
     Timestamp oldHeartBeatTime = server.getHeartBeatTime();
     server.setHeartBeatTime(heartBeatTime);
     server.setVersion(server.getVersion() + 1);
@@ -239,35 +239,36 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
       this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
     }
     List<String> children = this.getZooKeeper().getChildren(zkPath, false);
-    if (null != children && children.size() > 0) {
-      for (int i = 0; i < children.size(); i++) {
-        String taskName = children.get(i);
-        String taskPath = zkPath + "/" + taskName;
-        if (this.getZooKeeper().exists(taskPath, false) == null) {
-          this.getZooKeeper().create(taskPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
-        }
-        List<String> taskServerIds = this.getZooKeeper().getChildren(taskPath, false);
-        if (null == taskServerIds || taskServerIds.size() == 0) { //执行task的节点是空的
-          assignServer2Task(taskServerList, taskPath);
-        } else {
-          boolean hasAssignSuccess = false;
-          for (String serverId : taskServerIds) {
-            if (taskServerList.contains(serverId)) {
-              hasAssignSuccess = true;
-              continue;
-            }
-
-            LOG.warn("删除僵尸Task: " + taskPath + "/" + serverId);
-            ZKTools.deleteTree(this.getZooKeeper(), taskPath + "/" + serverId); //@wjw_note: 删除某一节点已经死掉的残留下来的僵尸task!
-          }
-          if (hasAssignSuccess == false) {
-            assignServer2Task(taskServerList, taskPath); //@wjw_note: 把任务分配给taskServerList里随机的一个server!
-          }
-        }
-      }
-    } else {
+    if (null == children || children.size() == 0) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(currentUuid + ":没有集群任务");
+      }
+      return;
+    }
+
+    for (int i = 0; i < children.size(); i++) {
+      String taskName = children.get(i);
+      String taskPath = zkPath + "/" + taskName;
+      if (this.getZooKeeper().exists(taskPath, false) == null) {
+        this.getZooKeeper().create(taskPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
+      }
+      List<String> taskServerIds = this.getZooKeeper().getChildren(taskPath, false);
+      if (null == taskServerIds || taskServerIds.size() == 0) { //执行task的节点是空的
+        assignServer2Task(taskServerList, taskPath);
+      } else {
+        boolean hasAssignSuccess = false;
+        for (String serverId : taskServerIds) {
+          if (taskServerList.contains(serverId)) {
+            hasAssignSuccess = true;
+            continue;
+          }
+
+          LOG.warn("删除僵尸Task: " + taskPath + "/" + serverId);
+          ZKTools.deleteTree(this.getZooKeeper(), taskPath + "/" + serverId); //@wjw_note: 删除某一节点已经死掉的残留下来的僵尸task!
+        }
+        if (hasAssignSuccess == false) {
+          assignServer2Task(taskServerList, taskPath); //@wjw_note: 把任务分配给taskServerList里随机的一个server!
+        }
       }
     }
   }
