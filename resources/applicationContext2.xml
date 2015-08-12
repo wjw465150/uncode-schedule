@@ -15,7 +15,7 @@
 				<entry key="rootPath" value="/schedule/dev" />
 				<entry key="zkSessionTimeout" value="60000" />
 				<entry key="userName" value="ScheduleAdmin" />
-				<entry key="password" value="password" />
+				<entry key="password" value="123456" />
 				<entry key="autoRegisterTask" value="true" />
 			</map>
 		</property>

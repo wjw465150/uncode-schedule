@@ -13,7 +13,8 @@ import java.util.Date;
  * 
  */
 public class ScheduleUtil {
-  public static String OWN_SIGN_BASE = "BASE";
+  public static final String OWN_SIGN_BASE = "BASE";
+  public static final String DATA_FORMAT_YYYYMMDDHHMMSS = "yyyy-MM-dd HH:mm:ss";
 
   public static String getLocalHostName() {
     try {
@@ -43,12 +44,12 @@ public class ScheduleUtil {
   }
 
   public static String transferDataToString(Date d) {
-    SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat(ScheduleUtil.DATA_FORMAT_YYYYMMDDHHMMSS);
     return DATA_FORMAT_yyyyMMddHHmmss.format(d);
   }
 
   public static Date transferStringToDate(String d) throws ParseException {
-    SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    SimpleDateFormat DATA_FORMAT_yyyyMMddHHmmss = new SimpleDateFormat(ScheduleUtil.DATA_FORMAT_YYYYMMDDHHMMSS);
     return DATA_FORMAT_yyyyMMddHHmmss.parse(d);
   }
 

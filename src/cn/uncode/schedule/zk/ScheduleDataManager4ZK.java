@@ -18,6 +18,8 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.uncode.schedule.util.ScheduleUtil;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -52,7 +54,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
   public ScheduleDataManager4ZK(ZKManager aZkManager) throws Exception {
     this.zkManager = aZkManager;
-    this.gson = new GsonBuilder().registerTypeAdapter(Timestamp.class, new TimestampTypeAdapter()).setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+    this.gson = new GsonBuilder().registerTypeAdapter(Timestamp.class, new TimestampTypeAdapter()).setDateFormat(ScheduleUtil.DATA_FORMAT_YYYYMMDDHHMMSS).create();
     this.pathServer = this.zkManager.getRootPath() + "/" + NODE_SERVER;
     this.pathTask = this.zkManager.getRootPath() + "/" + NODE_TASK;
     this.random = new Random();
@@ -346,7 +348,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
   private static class TimestampTypeAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
     public JsonElement serialize(Timestamp src, Type arg1, JsonSerializationContext arg2) {
-      DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      DateFormat format = new SimpleDateFormat(ScheduleUtil.DATA_FORMAT_YYYYMMDDHHMMSS);
       String dateFormatAsString = format.format(new Date(src.getTime()));
       return new JsonPrimitive(dateFormatAsString);
     }
@@ -358,7 +360,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
       }
 
       try {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat format = new SimpleDateFormat(ScheduleUtil.DATA_FORMAT_YYYYMMDDHHMMSS);
         Date date = (Date) format.parse(json.getAsString());
         return new Timestamp(date.getTime());
       } catch (Exception e) {
