@@ -48,7 +48,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.MethodInvoker;
 import org.springframework.util.ReflectionUtils;
 
-import cn.uncode.schedule.ConsoleManager;
+import cn.uncode.schedule.ZKScheduleManager;
 
 /**
  * {@link org.springframework.beans.factory.FactoryBean} that exposes a
@@ -326,19 +326,18 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
       try {
-        //String name = ScheduleUtil.getTaskNameFormBean(context.getJobDetail().getKey().getName(), this.methodInvoker.getTargetMethod()); //targetObject#targetMethod
         Trigger trigger = context.getTrigger();
         //String name = trigger.getGroup() + "." + trigger.getName() + "$" + trigger.getJobGroup() + "." + trigger.getJobName();
         String name = trigger.getName() + "." + trigger.getJobName();
         boolean isOwner = false;
         try {
-          if (ConsoleManager.getScheduleManager().getZkManager().isZookeeperConnected()) {
-            isOwner = ConsoleManager.getScheduleManager().getScheduleDataManager().isOwner(name, ConsoleManager.getScheduleManager().getScheduleServerUUid());
-            ConsoleManager.getScheduleManager().getIsOwnerMap().put(name, isOwner);
+          if (ZKScheduleManager.getInstance().getZkManager().isZookeeperConnected() && ZKScheduleManager.getInstance().isRegisted()) {
+            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(name, ZKScheduleManager.getInstance().getScheduleServerUUid());
+            ZKScheduleManager.getInstance().getIsOwnerMap().put(name, isOwner);
           } else {
             // 如果zk不可用，使用历史数据
-            if (null != ConsoleManager.getScheduleManager().getIsOwnerMap()) {
-              isOwner = ConsoleManager.getScheduleManager().getIsOwnerMap().get(name);
+            if (null != ZKScheduleManager.getInstance().getIsOwnerMap()) {
+              isOwner = ZKScheduleManager.getInstance().getIsOwnerMap().get(name) == null ? false : true;
             }
           }
         } catch (org.apache.zookeeper.KeeperException.NoNodeException ex) { //@wjw_note: NoNodeException异常说明系统还没有初始化好,忽略此异常!

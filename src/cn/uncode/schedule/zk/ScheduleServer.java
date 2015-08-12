@@ -32,7 +32,7 @@ public class ScheduleServer {
   /**
    * 服务开始时间
    */
-  private Timestamp registerTime;
+  private Timestamp registedTime;
 
   /**
    * 最后一次心跳通知时间
@@ -64,7 +64,7 @@ public class ScheduleServer {
    */
   private long version;
 
-  private boolean isRegister;
+  private boolean isRegisted;
 
   public ScheduleServer() {
 
@@ -76,7 +76,7 @@ public class ScheduleServer {
     result.ownSign = aOwnSign;
     result.ip = ScheduleUtil.getLocalIP();
     result.hostName = ScheduleUtil.getLocalHostName();
-    result.registerTime = new Timestamp(currentTime);
+    result.registedTime = new Timestamp(currentTime);
     result.heartBeatTime = null;
     result.dealInfoDesc = "调度初始化";
     result.version = 0;
@@ -100,12 +100,12 @@ public class ScheduleServer {
     this.version = version;
   }
 
-  public Timestamp getRegisterTime() {
-    return registerTime;
+  public Timestamp getRegistedTime() {
+    return registedTime;
   }
 
-  public void setRegisterTime(Timestamp registerTime) {
-    this.registerTime = registerTime;
+  public void setRegistedTime(Timestamp registedTime) {
+    this.registedTime = registedTime;
   }
 
   public Timestamp getHeartBeatTime() {
@@ -180,12 +180,12 @@ public class ScheduleServer {
     this.ownSign = ownSign;
   }
 
-  public void setRegister(boolean isRegister) {
-    this.isRegister = isRegister;
+  public void setRegisted(boolean isRegisted) {
+    this.isRegisted = isRegisted;
   }
 
-  public boolean isRegister() {
-    return isRegister;
+  public boolean isRegisted() {
+    return isRegisted;
   }
 
 }

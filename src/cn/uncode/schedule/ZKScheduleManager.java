@@ -15,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.Trigger;
@@ -46,6 +44,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   protected ZKManager zkManager;
 
   private IScheduleDataManager scheduleDataManager;
+  
+  private static ZKScheduleManager instance = null;
 
   /**
    * 当前调度服务的信息
@@ -65,7 +65,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   /**
    * 是否注册成功
    */
-  private boolean isScheduleServerRegister = false;
+  private boolean registed = false;
 
   private ApplicationContext applicationcontext;
 
@@ -82,7 +82,11 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   public ZKScheduleManager() {
     this.currenScheduleServer = ScheduleServer.createScheduleServer(null);
   }
-
+  
+  public static ZKScheduleManager getInstance() {
+    return instance;
+  }
+  
   @Override
   public void afterPropertiesSet() {
     super.afterPropertiesSet();
@@ -113,7 +117,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     this.initLock.lock();
     try {
       this.scheduleDataManager = null;
-      ConsoleManager.setScheduleManagerFactory(this);
+      instance = this;
       if (this.zkManager != null) {
         this.zkManager.close();
       }
@@ -188,7 +192,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         this.clearMemoInfo();
         this.scheduleDataManager.registerScheduleServer(this.currenScheduleServer);
       }
-      isScheduleServerRegister = true;
+      this.registed = true;
     } finally {
       registerLock.unlock();
     }
@@ -237,7 +241,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     try {
       rewriteScheduleInfo();
       // 如果任务信息没有初始化成功，不做任务相关的处理
-      if (this.isScheduleServerRegister == false) {
+      if (this.registed == false) {
         return;
       }
 
@@ -282,7 +286,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
           String name = "SpringScheduler." + ScheduleUtil.getTaskNameFormBean(beanNames[0], targetMethod.getName());
           boolean isOwner = false;
           try {
-            if (isScheduleServerRegister == false) {
+            if (registed == false) {
               Thread.sleep(1000);
             }
             if (zkManager.isZookeeperConnected()) {
@@ -429,4 +433,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     return isOwnerMap;
   }
 
+  public boolean isRegisted() {
+    return registed;
+  }
 }

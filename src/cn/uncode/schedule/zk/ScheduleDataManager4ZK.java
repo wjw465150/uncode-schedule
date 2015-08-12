@@ -86,7 +86,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     String zkPath = this.pathServer + "/" + server.getUuid();
     if (this.getZooKeeper().exists(zkPath, false) == null) {
       //数据可能被清除，先清除内存数据后，重新注册数据
-      server.setRegister(false);
+      server.setRegisted(false);
       return false;
     }
     
@@ -108,7 +108,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
   @Override
   //@wjw_note: 在Zookeeper上注册ScheduleServer
   public void registerScheduleServer(ScheduleServer server) throws Exception {
-    if (server.isRegister() == true) {
+    if (server.isRegisted() == true) {
       throw new Exception(server.getUuid() + " 被重复注册");
     }
 
@@ -125,7 +125,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
     String valueString = this.gson.toJson(server);
     this.getZooKeeper().setData(realPath, valueString.getBytes(), -1);
-    server.setRegister(true);
+    server.setRegisted(true);
   }
 
   @Override
