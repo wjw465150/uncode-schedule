@@ -42,6 +42,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
   private static final String NODE_SERVER = "server";
   private static final String NODE_TASK = "task";
   private static final long SERVER_EXPIRE_TIME = 5000 * 3;
+  private static final long TASK_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000;
 
   private ZKManager zkManager;
 
@@ -176,7 +177,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         this.getZooKeeper().getData(zkPath + "/" + name, null, stat);
         if (getSystemTime() - stat.getMtime() > SERVER_EXPIRE_TIME) {
           ZKTools.deleteTree(this.getZooKeeper(), zkPath + "/" + name);
-          LOG.warn("ScheduleServer[" + zkPath + "/" + name + "]过期清除");
+          LOG.warn("清除过期ScheduleServer[" + zkPath + "/" + name + "]");
         }
       } catch (Exception e) {
         // 当有多台服务器时，存在并发清理的可能，忽略异常
@@ -265,7 +266,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
             continue;
           }
 
-          LOG.warn("删除僵尸Task: " + taskPath + "/" + serverId);
+          LOG.warn("删除僵尸Task Runner: " + taskPath + "/" + serverId);
           ZKTools.deleteTree(this.getZooKeeper(), taskPath + "/" + serverId); //@wjw_note: 删除某一节点已经死掉的残留下来的僵尸task!
         }
         if (hasAssignSuccess == false) {
@@ -277,6 +278,18 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
   //@wjw_note: 把任务分配给taskServerList里随机的一个server!
   private void assignServer2Task(List<String> taskServerList, String taskPath) throws Exception {
+    //@wjw_note: 清除过期的无Runner的Task
+    {
+      Stat stat = new Stat();
+      this.getZooKeeper().getData(taskPath, null, stat);
+      if (getSystemTime() - stat.getMtime() > TASK_EXPIRE_TIME) {
+        ZKTools.deleteTree(this.getZooKeeper(), taskPath);
+        LOG.warn("清除过期的无Runner的Task[" + taskPath + "]");
+        return;
+      }
+
+    }
+
     int index = random.nextInt(taskServerList.size());
     String serverId = taskServerList.get(index);
     this.getZooKeeper().create(taskPath + "/" + serverId, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
