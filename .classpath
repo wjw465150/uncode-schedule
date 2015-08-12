@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.7"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/Apache-commons/commons-lang3-3.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/Google/gson-2.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/Log/commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/Log/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/Log/slf4j-api.jar"/>
+	<classpathentry kind="lib" path="lib/Log/slf4j-log4j.jar"/>
+	<classpathentry kind="lib" path="lib/Quartz/quartz-all-1.8.6.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/annotations-api.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/aopalliance-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-aop-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-aspects-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-beans-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-context-support-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-core-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-expression-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/ZooKeeper/zookeeper-3.4.6.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-context-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="lib" path="lib/Spring3/spring-tx-3.2.12.RELEASE.jar"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>
