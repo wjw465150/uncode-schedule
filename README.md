@@ -14,12 +14,12 @@
 
 ------------------------------------------------------------------------
 
-# 基于Spring Task的XML配置
+# 1. 基于Spring Task的XML配置
 
-## XML方式
+## 1.1 XML方式
 
 1 Spring bean
-
+```java
 	public class SimpleTask {
 
 		private static int i = 0;
@@ -30,36 +30,49 @@
 			System.out.println("=========== end !=========");
 		}
 	}
-
+```
 2 xml配置
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
 	<!-- 分布式任务管理器 -->
-	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager"
-		init-method="init">
+	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
 		<property name="zkConfig">
-			   <map>
-				  <entry key="zkConnectString" value="127.0.0.1:2181" />
-				  <entry key="rootPath" value="/schedule/dev" />
-				  <entry key="zkSessionTimeout" value="60000" />
-				  <entry key="userName" value="ScheduleAdmin" />
-				  <entry key="password" value="123456" />
-				  <entry key="isCheckParentPath" value="true" />
-			   </map>
+			<map>
+				<entry key="zkConnectString" value="localhost:2181" />
+				<entry key="rootPath" value="/schedule/dev" />
+				<entry key="zkSessionTimeout" value="60000" />
+				<entry key="userName" value="ScheduleAdmin" />
+				<entry key="password" value="123456" />
+				<entry key="autoRegisterTask" value="true" />
+			</map>
 		</property>
 	</bean>
-	<!-- Spring bean配置 -->
-	<bean id="taskObj" class="cn.uncode.schedule.SimpleTask"/>
+
+
 	<!-- Spring task配置 -->
 	<task:scheduled-tasks scheduler="zkScheduleManager">
-		<task:scheduled ref="taskObj" method="print"  fixed-rate="5000"/>
+		<task:scheduled ref="taskObj" method="print"
+			fixed-rate="5000" />
 	</task:scheduled-tasks>
-	
+
+	<!-- Spring bean配置 -->
+	<bean id="taskObj" class="cn.uncode.schedule.test.SimpleTask" />
+</beans>
+```	
 ------------------------------------------------------------------------
 
-## Annotation方式
+## 1.2 Annotation方式
 
 1 Spring bean
-
+```java
 	@Component
 	public class SimpleTask {
 
@@ -73,13 +86,15 @@
 		}
 		
 	}
+```
 
 2 xml配置
-
+```xml
 	<!-- 配置注解扫描 -->
     <context:annotation-config />
 	<!-- 自动扫描的包名 -->
     <context:component-scan base-package="cn.uncode.schedule" />
+    
 	<!-- 分布式任务管理器 -->
 	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager"
 		init-method="init">
@@ -94,59 +109,72 @@
 			   </map>
 		</property>
 	</bean>
+	
 	<!-- Spring定时器注解开关-->
 	<task:annotation-driven scheduler="zkScheduleManager" />
-
+```
 	
 ------------------------------------------------------------------------
 	
-# 基于Quartz的XML配置
+# 2. 基于Quartz的XML配置
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
-	注意：spring的MethodInvokingJobDetailFactoryBean改成cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean
-	
-	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager"
-			init-method="init">
+
+	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
 		<property name="zkConfig">
-			   <map>
-				  <entry key="zkConnectString" value="127.0.0.1:2181" />
-				  <entry key="rootPath" value="/schedule/dev" />
-				  <entry key="zkSessionTimeout" value="60000" />
-				  <entry key="userName" value="ScheduleAdmin" />
-				  <entry key="password" value="123456" />
-				  <entry key="autoRegisterTask" value="true" />
-			   </map>
+			<map>
+				<entry key="zkConnectString" value="127.0.0.1:2181" />
+				<entry key="rootPath" value="/schedule/dev" />
+				<entry key="zkSessionTimeout" value="60000" />
+				<entry key="userName" value="ScheduleAdmin" />
+				<entry key="password" value="password" />
+				<entry key="autoRegisterTask" value="true" />
+			</map>
 		</property>
-	</bean>	
-
-
-	<bean id="taskObj" class="cn.uncode.schedule.SimpleTask"/>
-
-	<!-- 定义调用对象和调用对象的方法 -->
-	<bean id="jobtask" class="cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean">
-		<!-- 调用的类 -->
-		<property name="targetObject" ref="taskObj" />
-		<!-- 调用类中的方法 -->
-		<property name="targetMethod" value="print" />
 	</bean>
-	<!-- 定义触发时间 -->
-	<bean id="doTime" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+
+	<!-- Quartz SchedulerFactoryBean -->
+	<bean id="startQuertz"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="Trigger_doTime" />
+			</list>
+		</property>
+	</bean>
+
+	<!-- Trigger_doTime -->
+	<bean id="Trigger_doTime"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
 		<property name="jobDetail">
-			<ref bean="jobtask"/>
+			<ref bean="JobDetail_jobtask" />
 		</property>
 		<!-- cron表达式 -->
 		<property name="cronExpression">
 			<value>0/3 * * * * ?</value>
 		</property>
 	</bean>
-	<!-- 总管理类 如果将lazy-init='false'那么容器启动就会执行调度程序  -->
-	<bean id="startQuertz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-		<property name="triggers">
-			<list>
-				<ref bean="doTime"/>
-			</list>
-		</property>
+	<!-- JobDetail_jobtask -->
+	<!-- 注意：spring的MethodInvokingJobDetailFactoryBean改成cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean -->
+	<bean id="JobDetail_jobtask"
+		class="cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 调用的类 -->
+		<property name="targetObject" ref="taskObj" />
+		<!-- 调用类中的方法 -->
+		<property name="targetMethod" value="print" />
 	</bean>
-	
+
+	<bean id="taskObj" class="cn.uncode.schedule.test.SimpleTask" />
+</beans>
+```	
 ------------------------------------------------------------------------
 
 # 引用:

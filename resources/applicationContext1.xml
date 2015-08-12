@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/task
         http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
-
+	<!-- 分布式任务管理器 -->
 	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
 		<property name="zkConfig">
 			<map>
@@ -22,11 +22,12 @@
 	</bean>
 
 
-	<bean id="taskObj" class="cn.uncode.schedule.SimpleTask" />
-
+	<!-- Spring task配置 -->
 	<task:scheduled-tasks scheduler="zkScheduleManager">
 		<task:scheduled ref="taskObj" method="print"
 			fixed-rate="5000" />
 	</task:scheduled-tasks>
 
+	<!-- Spring bean配置 -->
+	<bean id="taskObj" class="cn.uncode.schedule.test.SimpleTask" />
 </beans>

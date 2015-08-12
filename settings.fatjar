@@ -1,5 +1,5 @@
 #Fat Jar Configuration File
-#Wed Aug 12 11:20:35 CST 2015
+#Wed Aug 12 15:03:51 CST 2015
 onejar.license.required=true
 manifest.classpath=
 manifest.removesigners=true
@@ -10,5 +10,5 @@ manifest.mainclass=
 manifest.file=<createnew>
 jarname.isextern=false
 onejar.expand=
-excludes=<po|uncode-schedule>~cn/~uncode/~schedule/~SimpeTestNode_1.class;<po|uncode-schedule>~cn/~uncode/~schedule/~SimpeTestNode_2.class;<po|uncode-schedule>~cn/~uncode/~schedule/~SimpleTask.class;<po|uncode-schedule>~cn/~uncode/~schedule/~ZookeeperTest.class;<po|uncode-schedule>~applicationContext1.xml;<po|uncode-schedule>~applicationContext2.xml;<po|uncode-schedule>~log4j.properties;<jar|junit.jar>;<jar|org.hamcrest.core_1.1.0.v20090501071000.jar>;<jar|commons-lang3-3.3.2.jar>;<jar|gson-2.2.4.jar>;<jar|commons-logging.jar>;<jar|log4j-1.2.17.jar>;<jar|slf4j-api.jar>;<jar|slf4j-log4j.jar>;<jar|quartz-all-1.8.6.jar>;<jar|annotations-api.jar>;<jar|aopalliance-1.0.jar>;<jar|spring-aop-3.2.12.RELEASE.jar>;<jar|spring-aspects-3.2.12.RELEASE.jar>;<jar|spring-beans-3.2.12.RELEASE.jar>;<jar|spring-context-support-3.2.12.RELEASE.jar>;<jar|spring-core-3.2.12.RELEASE.jar>;<jar|spring-expression-3.2.12.RELEASE.jar>;<jar|zookeeper-3.4.6.jar>;<jar|spring-context-3.2.12.RELEASE.jar>;<jar|spring-tx-3.2.12.RELEASE.jar>
+excludes=<po|uncode-schedule>~cn/~uncode/~schedule/~test/;<po|uncode-schedule>~applicationContext1.xml;<po|uncode-schedule>~applicationContext2.xml;<po|uncode-schedule>~log4j.properties;<jar|junit.jar>;<jar|org.hamcrest.core_1.1.0.v20090501071000.jar>;<jar|commons-lang3-3.3.2.jar>;<jar|gson-2.2.4.jar>;<jar|commons-logging.jar>;<jar|log4j-1.2.17.jar>;<jar|slf4j-api.jar>;<jar|slf4j-log4j.jar>;<jar|quartz-all-1.8.6.jar>;<jar|annotations-api.jar>;<jar|aopalliance-1.0.jar>;<jar|spring-aop-3.2.12.RELEASE.jar>;<jar|spring-aspects-3.2.12.RELEASE.jar>;<jar|spring-beans-3.2.12.RELEASE.jar>;<jar|spring-context-support-3.2.12.RELEASE.jar>;<jar|spring-core-3.2.12.RELEASE.jar>;<jar|spring-expression-3.2.12.RELEASE.jar>;<jar|zookeeper-3.4.6.jar>;<jar|spring-context-3.2.12.RELEASE.jar>;<jar|spring-tx-3.2.12.RELEASE.jar>
 includes=

@@ -1,4 +1,4 @@
-package cn.uncode.schedule;
+package cn.uncode.schedule.test;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
