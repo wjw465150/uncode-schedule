@@ -63,4 +63,5 @@ public interface IScheduleDataManager {
 
   public void addTask(String name) throws Exception;
 
+  public void deleteTaskOwner(String taskName, String uuid) throws Exception;
 }

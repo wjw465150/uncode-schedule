@@ -7,6 +7,7 @@
 2. 确保每个任务在集群中不同节点上不重复的执行。
 3. 单个任务节点故障时自动转移到其他任务节点继续执行。
 4. 任务节点启动时必须保证zookeeper可用，任务节点运行期zookeeper集群不可用时任务节点保持悬挂状态，直到zookeeper集群恢复正常运期。
+5. 任务会在各个任务节点均衡的执行.
 
 说明：
 * 单节点故障时需要业务保障数据完整性或幂等性。
@@ -54,6 +55,7 @@
 				<entry key="autoRegisterTask" value="true" />
 			</map>
 		</property>
+		<property name="reAssignTaskThreshold" value="10" />
 	</bean>
 
 
@@ -139,6 +141,7 @@
 				<entry key="autoRegisterTask" value="true" />
 			</map>
 		</property>
+		<property name="reAssignTaskThreshold" value="10" />
 	</bean>
 
 	<!-- Quartz SchedulerFactoryBean -->

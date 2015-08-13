@@ -359,6 +359,15 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     }
   }
 
+  @Override
+  public void deleteTaskOwner(String taskName, String uuid) throws Exception {
+    String taskOwnerPath = this.pathTask + "/" + taskName + "/" + uuid;
+
+    if (this.getZooKeeper().exists(taskOwnerPath, false) != null) {
+      ZKTools.deleteTree(this.getZooKeeper(), taskOwnerPath);
+    }
+  }
+
   private static class TimestampTypeAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
     public JsonElement serialize(Timestamp src, Type arg1, JsonSerializationContext arg2) {
       DateFormat format = new SimpleDateFormat(ScheduleUtil.DATA_FORMAT_YYYYMMDDHHMMSS);

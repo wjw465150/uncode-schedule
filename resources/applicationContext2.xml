@@ -11,7 +11,7 @@
 	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
 		<property name="zkConfig">
 			<map>
-				<entry key="zkConnectString" value="127.0.0.1:2181" />
+				<entry key="zkConnectString" value="192.168.2.100:2181,192.168.2.104:2181" />
 				<entry key="rootPath" value="/schedule/dev" />
 				<entry key="zkSessionTimeout" value="60000" />
 				<entry key="userName" value="ScheduleAdmin" />
@@ -19,6 +19,7 @@
 				<entry key="autoRegisterTask" value="true" />
 			</map>
 		</property>
+		<property name="reAssignTaskThreshold" value="10" />
 	</bean>
 
 	<!-- Quartz SchedulerFactoryBean -->
@@ -46,6 +47,7 @@
 	<!-- 注意：spring的MethodInvokingJobDetailFactoryBean改成cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean -->
 	<bean id="JobDetail_jobtask"
 		class="cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="concurrent" value="false" />
 		<!-- 调用的类 -->
 		<property name="targetObject" ref="taskObj" />
 		<!-- 调用类中的方法 -->

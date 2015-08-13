@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.ScheduledMethodRunnable;
+import org.springframework.util.Assert;
 
 import cn.uncode.schedule.util.ScheduleUtil;
 import cn.uncode.schedule.zk.IScheduleDataManager;
@@ -63,11 +64,32 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   private int timerInterval = 3000;
 
   /**
+   * 重新分配task的阀值
+   */
+  private int reAssignTaskThreshold = 10;
+
+  public int getReAssignTaskThreshold() {
+    return reAssignTaskThreshold;
+  }
+
+  public void setReAssignTaskThreshold(int reAssignTaskThreshold) {
+    Assert.isTrue((reAssignTaskThreshold > 0));
+    this.reAssignTaskThreshold = reAssignTaskThreshold;
+  }
+
+  /**
    * 是否注册成功
    */
   private boolean registed = false;
 
   private ApplicationContext applicationcontext;
+  
+
+  //task运行次数Map
+  private Map<String, Integer> _taskRunCountMap = new ConcurrentHashMap<String, Integer>();
+  public Map<String, Integer> getTaskRunCountMap() {
+    return _taskRunCountMap;
+  }
 
   private Timer hearBeatTimer;
   protected Lock initLock = new ReentrantLock();
@@ -109,6 +131,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   }
 
   public void init(Properties properties) throws Exception {
+    _taskRunCountMap.clear();
+
     if (this.initialThread != null) {
       this.initialThread.stopThread();
     }
@@ -164,6 +188,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
           this.zkManager = null;
         }
       }
+
+      _taskRunCountMap.clear();
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -282,22 +308,39 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         Method targetMethod = scheduledMethodRunnable.getMethod();
         String[] beanNames = applicationcontext.getBeanNamesForType(targetMethod.getDeclaringClass());
         if (null != beanNames && StringUtils.isNotEmpty(beanNames[0])) {
-          String name = "SpringScheduler." + ScheduleUtil.getTaskNameFormBean(beanNames[0], targetMethod.getName());
+          String taskName = "SpringScheduler." + ScheduleUtil.getTaskNameFormBean(beanNames[0], targetMethod.getName());
           boolean isOwner = false;
           try {
             if (registed == false) {
               Thread.sleep(1000);
             }
             if (zkManager.isZookeeperConnected()) {
-              isOwner = scheduleDataManager.isOwner(name, currenScheduleServer.getUuid());
+              isOwner = scheduleDataManager.isOwner(taskName, currenScheduleServer.getUuid());
             }
           } catch (Exception e) {
             LOGGER.error("Check task owner error.", e);
           }
 
           if (isOwner) { //@wjw_note: 如果是task的owner,就执行!
+            if (_taskRunCountMap.containsKey(taskName) == false) {
+              _taskRunCountMap.put(taskName, 0);
+            }
+            int fireCount = _taskRunCountMap.get(taskName);
+            fireCount++;
+            _taskRunCountMap.put(taskName, fireCount);
+
             task.run();
             LOGGER.info("Cron job has been executed.");
+
+            //@wjw_note: 添加让出逻辑!
+            if ((fireCount % ZKScheduleManager.getInstance().getReAssignTaskThreshold()) == 0) {
+              LOGGER.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+              try {
+                ZKScheduleManager.getInstance().getScheduleDataManager().deleteTaskOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
+              } catch (Exception ex) {
+                LOGGER.error(ex.getMessage(), ex);
+              }
+            }
           }
         }
       }

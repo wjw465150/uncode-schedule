@@ -18,6 +18,7 @@ package cn.uncode.schedule.quartz;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -128,6 +129,9 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
   private BeanFactory beanFactory;
 
   private JobDetail jobDetail;
+
+  //task执行计数
+  private AtomicInteger _taskRunCount = new AtomicInteger();
 
   /**
    * Set the name of the job.
@@ -327,20 +331,33 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
       try {
         Trigger trigger = context.getTrigger();
-        //String name = trigger.getGroup() + "." + trigger.getName() + "$" + trigger.getJobGroup() + "." + trigger.getJobName();
-        String name = trigger.getName() + "." + trigger.getJobName();
+        //String taskName = trigger.getGroup() + "." + trigger.getName() + "$" + trigger.getJobGroup() + "." + trigger.getJobName();
+        String taskName = trigger.getName() + "." + trigger.getJobName();
         boolean isOwner = false;
         try {
           if (ZKScheduleManager.getInstance().getZkManager().isZookeeperConnected() && ZKScheduleManager.getInstance().isRegisted()) {
-            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(name, ZKScheduleManager.getInstance().getScheduleServerUUid());
+            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
           }
         } catch (org.apache.zookeeper.KeeperException.NoNodeException ex) { //@wjw_note: NoNodeException异常说明系统还没有初始化好,忽略此异常!
         } catch (Exception e) {
           LOGGER.error("Check task owner error.", e);
         }
         if (isOwner) {
+          if (ZKScheduleManager.getInstance().getTaskRunCountMap().containsKey(taskName) == false) {
+            ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, 0);
+          }
+          int fireCount = ZKScheduleManager.getInstance().getTaskRunCountMap().get(taskName);
+          fireCount++;
+          ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, fireCount);
+
           ReflectionUtils.invokeMethod(setResultMethod, context, this.methodInvoker.invoke());
           LOGGER.debug("Cron job has been executed.");
+
+          //@wjw_note: 添加让出逻辑!
+          if ((fireCount % ZKScheduleManager.getInstance().getReAssignTaskThreshold()) == 0) {
+            LOGGER.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+            ZKScheduleManager.getInstance().getScheduleDataManager().deleteTaskOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
+          }
         }
       } catch (InvocationTargetException ex) {
         if (ex.getTargetException() instanceof JobExecutionException) {
