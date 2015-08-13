@@ -264,7 +264,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
           if (taskServerList.contains(serverId)) {
             Stat stat = new Stat();
             this.getZooKeeper().getData(taskPath + "/" + serverId, null, stat);
-            if (getSystemTime() - stat.getMtime() < TASK_EXPIRE_TIME) {
+            if (getSystemTime() - stat.getMtime() < TASK_EXPIRE_TIME) {  //@wjw_note: 判断task Owner节点是否过期
               hasAssignSuccess = true;
               continue;
             }
