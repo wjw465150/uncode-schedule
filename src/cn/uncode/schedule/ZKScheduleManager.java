@@ -8,6 +8,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -27,6 +28,7 @@ import cn.uncode.schedule.zk.IScheduleDataManager;
 import cn.uncode.schedule.zk.ScheduleDataManager4ZK;
 import cn.uncode.schedule.zk.ScheduleServer;
 import cn.uncode.schedule.zk.ZKManager;
+import cn.uncode.schedule.zk.ZKTools;
 
 /**
  * 调度器核心管理
@@ -83,10 +85,10 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   private boolean registed = false;
 
   private ApplicationContext applicationcontext;
-  
 
   //task运行次数Map
   private Map<String, Integer> _taskRunCountMap = new ConcurrentHashMap<String, Integer>();
+
   public Map<String, Integer> getTaskRunCountMap() {
     return _taskRunCountMap;
   }
@@ -144,6 +146,11 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         this.zkManager.close();
       }
       this.zkManager = new ZKManager(properties);
+      while (this.zkManager.isZookeeperConnected() == false) {
+        LOGGER.info("等待连接上Zookeeper......");
+        TimeUnit.SECONDS.sleep(1);
+      }
+
       this.errorMessage = "Zookeeper connecting ......" + this.zkManager.getConnectStr();
       initialThread = new InitialThread(this);
       initialThread.setName("ScheduleManager-initialThread");

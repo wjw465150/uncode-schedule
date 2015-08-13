@@ -39,10 +39,10 @@ import com.google.gson.JsonSerializer;
 public class ScheduleDataManager4ZK implements IScheduleDataManager {
   private static final transient Logger LOG = LoggerFactory.getLogger(ScheduleDataManager4ZK.class);
 
-  private static final String NODE_SERVER = "server";
-  private static final String NODE_TASK = "task";
-  private static final long SERVER_EXPIRE_TIME = 5000 * 3;
-  private static final long TASK_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000;
+  public static final String NODE_SERVER = "server";
+  public static final String NODE_TASK = "task";
+  public static final long SERVER_EXPIRE_TIME = 5000 * 3;
+  public static final long TASK_EXPIRE_TIME = 1 * 24 * 60 * 60 * 1000;
 
   private ZKManager zkManager;
 
@@ -241,16 +241,16 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     if (this.getZooKeeper().exists(zkPath, false) == null) {
       this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
     }
-    List<String> children = this.getZooKeeper().getChildren(zkPath, false);
-    if (null == children || children.size() == 0) {
+    List<String> taskChildren = this.getZooKeeper().getChildren(zkPath, false);
+    if (null == taskChildren || taskChildren.size() == 0) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(currentUuid + ":没有集群任务");
       }
       return;
     }
 
-    for (int i = 0; i < children.size(); i++) {
-      String taskName = children.get(i);
+    for (int i = 0; i < taskChildren.size(); i++) {
+      String taskName = taskChildren.get(i);
       String taskPath = zkPath + "/" + taskName;
       if (this.getZooKeeper().exists(taskPath, false) == null) {
         this.getZooKeeper().create(taskPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
@@ -262,8 +262,12 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         boolean hasAssignSuccess = false;
         for (String serverId : taskServerIds) {
           if (taskServerList.contains(serverId)) {
-            hasAssignSuccess = true;
-            continue;
+            Stat stat = new Stat();
+            this.getZooKeeper().getData(taskPath + "/" + serverId, null, stat);
+            if (getSystemTime() - stat.getMtime() < TASK_EXPIRE_TIME) {
+              hasAssignSuccess = true;
+              continue;
+            }
           }
 
           LOG.warn("删除僵尸Task Runner: " + taskPath + "/" + serverId);
