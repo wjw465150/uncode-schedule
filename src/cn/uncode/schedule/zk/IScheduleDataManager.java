@@ -52,6 +52,14 @@ public interface IScheduleDataManager {
   public List<String> loadScheduleServerNames() throws Exception;
 
   /**
+   * 获取Zookeeper中的Task列表
+   * 
+   * @return
+   * @throws Exception
+   */
+  public List<String> loadTaskNames() throws Exception;
+  
+  /**
    * 分配task给taskServerList中的随机一个!
    * @param currentUuid  ScheduleServer的UUID  
    * @param taskServerList ScheduleServer列表
@@ -63,5 +71,7 @@ public interface IScheduleDataManager {
 
   public void addTask(String name) throws Exception;
 
+  public void deleteTask(String name) throws Exception;
+  
   public void deleteTaskOwner(String taskName, String uuid) throws Exception;
 }

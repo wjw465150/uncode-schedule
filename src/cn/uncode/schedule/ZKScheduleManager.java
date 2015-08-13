@@ -2,6 +2,7 @@ package cn.uncode.schedule;
 
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -13,6 +14,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -20,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.support.ScheduledMethodRunnable;
 import org.springframework.util.Assert;
 
@@ -28,7 +32,6 @@ import cn.uncode.schedule.zk.IScheduleDataManager;
 import cn.uncode.schedule.zk.ScheduleDataManager4ZK;
 import cn.uncode.schedule.zk.ScheduleServer;
 import cn.uncode.schedule.zk.ZKManager;
-import cn.uncode.schedule.zk.ZKTools;
 
 /**
  * 调度器核心管理
@@ -113,6 +116,19 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   public void afterPropertiesSet() {
     super.afterPropertiesSet();
 
+    try { //@wjw_note: 初始化_taskRunCountMap
+      SchedulerFactoryBean schedulerFactoryBean = applicationcontext.getBean(org.springframework.scheduling.quartz.SchedulerFactoryBean.class);
+      Scheduler scheduler = schedulerFactoryBean.getScheduler();
+      String[] triggerNames = scheduler.getTriggerNames(Scheduler.DEFAULT_GROUP);
+      for (String triggerName : triggerNames) {
+        org.quartz.Trigger trigger = scheduler.getTrigger(triggerName, Scheduler.DEFAULT_GROUP);
+        String taskName = trigger.getName() + "." + trigger.getJobName();
+        _taskRunCountMap.put(taskName, 0);
+      }
+    } catch (Exception e) {
+      LOGGER.warn(e.getMessage(), e);
+    }
+
     Properties properties = new Properties();
     for (Map.Entry<String, String> e : this.zkConfig.entrySet()) {
       properties.put(e.getKey(), e.getValue());
@@ -133,8 +149,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   }
 
   public void init(Properties properties) throws Exception {
-    _taskRunCountMap.clear();
-
     if (this.initialThread != null) {
       this.initialThread.stopThread();
     }
@@ -195,8 +209,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
           this.zkManager = null;
         }
       }
-
-      _taskRunCountMap.clear();
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -258,6 +270,17 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
       return;
     }
 
+    //@wjw_note: 添加主动清理Quartz类型的遗留下来的垃圾task
+    if (_taskRunCountMap.size() > 0) {
+      List<String> zkTaskNames = scheduleDataManager.loadTaskNames();
+      for (String zkTaskName : zkTaskNames) {
+        if (_taskRunCountMap.containsKey(zkTaskName) == false) {
+          LOGGER.warn("删除垃圾Task:[" + zkTaskName + "]");
+          scheduleDataManager.deleteTask(zkTaskName);
+        }
+      }
+    }
+
     // 设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
     scheduleDataManager.assignTask(this.currenScheduleServer.getUuid(), serverList);
   }
@@ -316,6 +339,9 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         String[] beanNames = applicationcontext.getBeanNamesForType(targetMethod.getDeclaringClass());
         if (null != beanNames && StringUtils.isNotEmpty(beanNames[0])) {
           String taskName = "SpringScheduler." + ScheduleUtil.getTaskNameFormBean(beanNames[0], targetMethod.getName());
+          if (_taskRunCountMap.containsKey(taskName) == false) {
+            _taskRunCountMap.put(taskName, 0);
+          }
           boolean isOwner = false;
           try {
             if (registed == false) {
@@ -329,9 +355,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
           }
 
           if (isOwner) { //@wjw_note: 如果是task的owner,就执行!
-            if (_taskRunCountMap.containsKey(taskName) == false) {
-              _taskRunCountMap.put(taskName, 0);
-            }
             int fireCount = _taskRunCountMap.get(taskName);
             fireCount++;
             _taskRunCountMap.put(taskName, fireCount);

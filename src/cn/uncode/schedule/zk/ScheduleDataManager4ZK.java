@@ -215,6 +215,15 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     return serverList;
   }
 
+  public List<String> loadTaskNames() throws Exception {
+    String zkPath = this.pathTask;
+    if (this.getZooKeeper().exists(zkPath, false) == null) {
+      return new ArrayList<String>();
+    }
+    List<String> taskList = this.getZooKeeper().getChildren(zkPath, false);
+    return taskList;
+  }
+
   @Override
   //@wjw_note: 非常重要的,分配任务的逻辑!
   public void assignTask(String currentUuid, List<String> taskServerList) throws Exception {
@@ -264,7 +273,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
           if (taskServerList.contains(serverId)) {
             Stat stat = new Stat();
             this.getZooKeeper().getData(taskPath + "/" + serverId, null, stat);
-            if (getSystemTime() - stat.getMtime() < TASK_EXPIRE_TIME) {  //@wjw_note: 判断task Owner节点是否过期
+            if (getSystemTime() - stat.getMtime() < TASK_EXPIRE_TIME) { //@wjw_note: 判断task Owner节点是否过期
               hasAssignSuccess = true;
               continue;
             }
@@ -360,6 +369,15 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     }
     if (this.getZooKeeper().exists(zkPath + "/" + name, false) == null) {
       this.getZooKeeper().create(zkPath + "/" + name, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
+    }
+  }
+
+  @Override
+  public void deleteTask(String taskName) throws Exception {
+    String taskOwnerPath = this.pathTask + "/" + taskName;
+
+    if (this.getZooKeeper().exists(taskOwnerPath, false) != null) {
+      ZKTools.deleteTree(this.getZooKeeper(), taskOwnerPath);
     }
   }
 

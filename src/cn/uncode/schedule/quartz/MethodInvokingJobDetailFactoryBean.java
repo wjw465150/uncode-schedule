@@ -333,6 +333,10 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
         Trigger trigger = context.getTrigger();
         //String taskName = trigger.getGroup() + "." + trigger.getName() + "$" + trigger.getJobGroup() + "." + trigger.getJobName();
         String taskName = trigger.getName() + "." + trigger.getJobName();
+        if (ZKScheduleManager.getInstance().getTaskRunCountMap().containsKey(taskName) == false) {
+          ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, 0);
+        }
+
         boolean isOwner = false;
         try {
           if (ZKScheduleManager.getInstance().getZkManager().isZookeeperConnected() && ZKScheduleManager.getInstance().isRegisted()) {
@@ -343,9 +347,6 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
           LOGGER.error("Check task owner error.", e);
         }
         if (isOwner) {
-          if (ZKScheduleManager.getInstance().getTaskRunCountMap().containsKey(taskName) == false) {
-            ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, 0);
-          }
           int fireCount = ZKScheduleManager.getInstance().getTaskRunCountMap().get(taskName);
           fireCount++;
           ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, fireCount);
