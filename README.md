@@ -1,17 +1,19 @@
 # uncode-schedule
-基于zookeeper+quartz/spring task的分布式任务调度组件，非常小巧，无需任何修改就可以使spring task具备分布式特性，确保所有任务在集群中不重复，不遗漏的执行。
+基于Zookeeper+Quartz/SpringTask的分布式任务调度系统,非常小巧,零侵入,无需任何修改就可以使Quartz/SpringTask具备分布式特性,确保所有任务在集群中不重复,不遗漏的执行.
 
 # 功能概述
 
-1. 基于zookeeper+spring task/quartz的分布任务调度系统。
-2. 确保每个任务在集群中不同节点上不重复的执行。
-3. 单个任务节点故障时自动转移到其他任务节点继续执行。
-4. 任务节点启动时必须保证zookeeper可用，任务节点运行期zookeeper集群不可用时任务节点保持悬挂状态，直到zookeeper集群恢复正常运期。
+1. 基于Zookeeper+Quartz/SpringTask的分布任务调度系统.
+2. 确保每个任务在集群中不同节点上不重复的执行.
+3. 单个任务节点故障时自动转移到其他任务节点继续执行.
+4. 任务节点启动时必须保证zookeeper可用,任务节点运行期zookeeper集群不可用时任务节点保持悬挂状态,直到zookeeper集群恢复正常运期.
 5. 任务会在各个任务节点均衡的执行.
 
-说明：
-* 单节点故障时需要业务保障数据完整性或幂等性。
-* 具体使用方式和spring task/quartz相同，只需要配置ZKScheduleManager即可。
+说明:
+* 所有任务节点的代码和task配置要完全一致!
+* 单节点故障时需要业务保障数据完整性或幂等性.
+* 具体使用方式和spring task/quartz相同,只需要配置ZKScheduleManager即可.
+* 当添加,删除task时,当修改了task的逻辑时,要停止所有的任务节点,全部更新配置和代码后,再依次启动任务节点!  
 
 ------------------------------------------------------------------------
 
@@ -166,7 +168,7 @@
 		</property>
 	</bean>
 	<!-- JobDetail_jobtask -->
-	<!-- 注意：spring的MethodInvokingJobDetailFactoryBean改成cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean -->
+	<!-- 注意:spring的MethodInvokingJobDetailFactoryBean改成cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean -->
 	<bean id="JobDetail_jobtask"
 		class="cn.uncode.schedule.quartz.MethodInvokingJobDetailFactoryBean">
 		<!-- 调用的类 -->
