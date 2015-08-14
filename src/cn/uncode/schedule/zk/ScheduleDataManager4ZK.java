@@ -42,7 +42,6 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
   public static final String NODE_SERVER = "server";
   public static final String NODE_TASK = "task";
   public static final long SERVER_EXPIRE_TIME = 5000 * 3;
-  public static final long TASK_EXPIRE_TIME = 1 * 24 * 60 * 60 * 1000;
 
   private ZKManager zkManager;
 
@@ -271,12 +270,8 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
         boolean hasAssignSuccess = false;
         for (String serverId : taskServerIds) {
           if (taskServerList.contains(serverId)) {
-            Stat stat = new Stat();
-            this.getZooKeeper().getData(taskPath + "/" + serverId, null, stat);
-            if (getSystemTime() - stat.getMtime() < TASK_EXPIRE_TIME) { //@wjw_note: 判断task Owner节点是否过期
-              hasAssignSuccess = true;
-              continue;
-            }
+            hasAssignSuccess = true;
+            continue;
           }
 
           LOG.warn("删除僵尸Task Runner: " + taskPath + "/" + serverId);
@@ -291,18 +286,6 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
   //@wjw_note: 把任务分配给taskServerList里随机的一个server!
   private void assignServer2Task(List<String> taskServerList, String taskPath) throws Exception {
-    //@wjw_note: 清除过期的无Runner的Task
-    {
-      Stat stat = new Stat();
-      this.getZooKeeper().getData(taskPath, null, stat);
-      if (getSystemTime() - stat.getMtime() > TASK_EXPIRE_TIME) {
-        ZKTools.deleteTree(this.getZooKeeper(), taskPath);
-        LOG.warn("清除过期的无Runner的Task[" + taskPath + "]");
-        return;
-      }
-
-    }
-
     int index = random.nextInt(taskServerList.size());
     String serverId = taskServerList.get(index);
     this.getZooKeeper().create(taskPath + "/" + serverId, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);

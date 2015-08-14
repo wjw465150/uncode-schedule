@@ -261,7 +261,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
    * @throws Exception
    */
   public void assignScheduleTask() throws Exception {
-    scheduleDataManager.clearExpireScheduleServer();
+    scheduleDataManager.clearExpireScheduleServer();  //@wjw_note: 先清理无效的ScheduleServer!
+    
     List<String> serverList = scheduleDataManager.loadScheduleServerNames();
     if (scheduleDataManager.isLeader(this.currenScheduleServer.getUuid(), serverList) == false) {
       if (LOG.isDebugEnabled()) {
