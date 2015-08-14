@@ -18,6 +18,8 @@ public interface IScheduleDataManager {
    */
   public boolean refreshScheduleServer(ScheduleServer server) throws Exception;
 
+  public void refreshScheduleTask(ScheduleTask task);
+
   /**
    * 注册服务器
    * 

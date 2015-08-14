@@ -356,9 +356,30 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     //判断是否分配给当前节点
     zkPath = zkPath + "/" + uuid;
     if (this.getZooKeeper().exists(zkPath, false) != null) {
+      //@wjw_note: 写一些数据
+      String desc = "Quartz";
+      if (taskName.startsWith("SpringScheduler.")) {
+        desc = "SpringScheduler";
+      }
+      ScheduleTask task = new ScheduleTask(taskName, uuid, desc, new Timestamp(this.getSystemTime()));
+      this.refreshScheduleTask(task);
+
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void refreshScheduleTask(ScheduleTask task) {
+    try {
+      String zkPath = this.pathTask + "/" + task.getName();
+      if (this.getZooKeeper().exists(zkPath, false) != null) {
+        String valueString = this.gson.toJson(task);
+        this.getZooKeeper().setData(zkPath, valueString.getBytes(), -1);
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+    }
   }
 
   @Override

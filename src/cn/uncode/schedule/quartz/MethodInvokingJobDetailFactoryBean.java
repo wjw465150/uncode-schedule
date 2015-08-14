@@ -92,7 +92,7 @@ import cn.uncode.schedule.ZKScheduleManager;
 public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethodInvoker
     implements FactoryBean<JobDetail>, BeanNameAware, BeanClassLoaderAware, BeanFactoryAware, InitializingBean {
 
-  private static final transient Logger LOGGER = LoggerFactory.getLogger(MethodInvokingJobDetailFactoryBean.class);
+  private static final transient Logger LOG = LoggerFactory.getLogger(MethodInvokingJobDetailFactoryBean.class);
 
   private static Class<?> jobDetailImplClass;
 
@@ -344,7 +344,7 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
           }
         } catch (org.apache.zookeeper.KeeperException.NoNodeException ex) { //@wjw_note: NoNodeException异常说明系统还没有初始化好,忽略此异常!
         } catch (Exception e) {
-          LOGGER.error("Check task owner error.", e);
+          LOG.error("Check task owner error.", e);
         }
         if (isOwner) {
           int fireCount = ZKScheduleManager.getInstance().getTaskRunCountMap().get(taskName);
@@ -352,11 +352,11 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
           ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, fireCount);
 
           ReflectionUtils.invokeMethod(setResultMethod, context, this.methodInvoker.invoke());
-          LOGGER.debug("Cron job has been executed.");
+          LOG.debug("Cron job has been executed.");
 
           //@wjw_note: 添加让出逻辑!
           if ((fireCount % ZKScheduleManager.getInstance().getReAssignTaskThreshold()) == 0) {
-            LOGGER.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+            LOG.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
             ZKScheduleManager.getInstance().getScheduleDataManager().deleteTaskOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
           }
         }

@@ -43,7 +43,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
   private static final long serialVersionUID = 1L;
 
-  protected static final transient Logger LOGGER = LoggerFactory.getLogger(ZKScheduleManager.class);
+  protected static final transient Logger LOG = LoggerFactory.getLogger(ZKScheduleManager.class);
 
   private Map<String, String> zkConfig;
 
@@ -126,7 +126,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         _taskRunCountMap.put(taskName, 0);
       }
     } catch (Exception e) {
-      LOGGER.warn(e.getMessage(), e);
+      LOG.warn(e.getMessage(), e);
     }
 
     Properties properties = new Properties();
@@ -161,7 +161,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
       }
       this.zkManager = new ZKManager(properties);
       while (this.zkManager.isZookeeperConnected() == false) {
-        LOGGER.info("等待连接上Zookeeper......");
+        LOG.info("等待连接上Zookeeper......");
         TimeUnit.SECONDS.sleep(1);
       }
 
@@ -220,8 +220,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     registerLock.lock();
     try {
       if (this.isStopSchedule == true) {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.warn("外部命令终止调度,不在注册调度服务，避免遗留垃圾数据：" + currenScheduleServer.getUuid());
+        if (LOG.isDebugEnabled()) {
+          LOG.warn("外部命令终止调度,不在注册调度服务，避免遗留垃圾数据：" + currenScheduleServer.getUuid());
         }
         return;
       }
@@ -264,8 +264,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     scheduleDataManager.clearExpireScheduleServer();
     List<String> serverList = scheduleDataManager.loadScheduleServerNames();
     if (scheduleDataManager.isLeader(this.currenScheduleServer.getUuid(), serverList) == false) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(this.currenScheduleServer.getUuid() + ":不是负责任务分配的Leader,直接返回");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(this.currenScheduleServer.getUuid() + ":不是负责任务分配的Leader,直接返回");
       }
       return;
     }
@@ -275,7 +275,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
       List<String> zkTaskNames = scheduleDataManager.loadTaskNames();
       for (String zkTaskName : zkTaskNames) {
         if (_taskRunCountMap.containsKey(zkTaskName) == false) {
-          LOGGER.warn("删除垃圾Task:[" + zkTaskName + "]");
+          LOG.warn("删除垃圾Task:[" + zkTaskName + "]");
           scheduleDataManager.deleteTask(zkTaskName);
         }
       }
@@ -351,7 +351,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
               isOwner = scheduleDataManager.isOwner(taskName, currenScheduleServer.getUuid());
             }
           } catch (Exception e) {
-            LOGGER.error("Check task owner error.", e);
+            LOG.error("Check task owner error.", e);
           }
 
           if (isOwner) { //@wjw_note: 如果是task的owner,就执行!
@@ -360,15 +360,15 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
             _taskRunCountMap.put(taskName, fireCount);
 
             task.run();
-            LOGGER.info("Cron job has been executed.");
+            LOG.info("Cron job has been executed.");
 
             //@wjw_note: 添加让出逻辑!
             if ((fireCount % ZKScheduleManager.getInstance().getReAssignTaskThreshold()) == 0) {
-              LOGGER.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+              LOG.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
               try {
                 ZKScheduleManager.getInstance().getScheduleDataManager().deleteTaskOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
               } catch (Exception ex) {
-                LOGGER.error(ex.getMessage(), ex);
+                LOG.error(ex.getMessage(), ex);
               }
             }
           }

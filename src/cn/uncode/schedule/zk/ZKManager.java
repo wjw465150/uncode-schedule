@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ZKManager {
-
-  private static transient Logger log = LoggerFactory.getLogger(ZKManager.class);
+  private static transient Logger LOG = LoggerFactory.getLogger(ZKManager.class);
+  
   private ZooKeeper zk;
   private List<ACL> acl = new ArrayList<ACL>();
   private Properties properties;
@@ -81,20 +81,20 @@ public class ZKManager {
 
   private void sessionEvent(CountDownLatch connectionLatch, WatchedEvent event) {
     if (event.getState() == KeeperState.SyncConnected) {
-      log.info("收到ZK连接成功事件！");
+      LOG.info("收到ZK连接成功事件！");
       connectionLatch.countDown();
     } else if (event.getState() == KeeperState.Expired) {
-      log.error("会话超时，等待重新建立ZK连接...");
+      LOG.error("会话超时，等待重新建立ZK连接...");
       try {
         reConnection();
       } catch (Exception e) {
-        log.error(e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       }
     } // Disconnected：Zookeeper会自动处理Disconnected状态重连
   }
 
   public void close() throws InterruptedException {
-    log.info("关闭zookeeper连接");
+    LOG.info("关闭zookeeper连接");
     this.zk.close();
   }
 
@@ -152,7 +152,7 @@ public class ZKManager {
         if (Version.isCompatible(dataVersion) == false) {
           throw new Exception("Schedule程序版本 " + Version.getVersion() + " 不兼容Zookeeper中的数据版本 " + dataVersion);
         }
-        log.info("当前的程序版本:" + Version.getVersion() + " 数据版本: " + dataVersion);
+        LOG.info("当前的程序版本:" + Version.getVersion() + " 数据版本: " + dataVersion);
       }
     }
   }
