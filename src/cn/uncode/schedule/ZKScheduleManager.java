@@ -2,7 +2,6 @@ package cn.uncode.schedule;
 
 import java.lang.reflect.Method;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -15,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -261,8 +259,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
    * @throws Exception
    */
   public void assignScheduleTask() throws Exception {
-    scheduleDataManager.clearExpireScheduleServer();  //@wjw_note: 先清理无效的ScheduleServer!
-    
+    scheduleDataManager.clearExpireScheduleServer(); //@wjw_note: 先清理无效的ScheduleServer!
+
     List<String> serverList = scheduleDataManager.loadScheduleServerNames();
     if (scheduleDataManager.isLeader(this.currenScheduleServer.getUuid(), serverList) == false) {
       if (LOG.isDebugEnabled()) {
@@ -349,7 +347,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
               Thread.sleep(1000);
             }
             if (zkManager.isZookeeperConnected()) {
-              isOwner = scheduleDataManager.isOwner(taskName, currenScheduleServer.getUuid());
+              String taskDesc = "Spring:Task";
+              isOwner = scheduleDataManager.isOwner(taskName, taskDesc, currenScheduleServer.getUuid());
             }
           } catch (Exception e) {
             LOG.error("Check task owner error.", e);

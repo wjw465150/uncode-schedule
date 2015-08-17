@@ -60,20 +60,23 @@ public interface IScheduleDataManager {
    * @throws Exception
    */
   public List<String> loadTaskNames() throws Exception;
-  
+
   /**
    * 分配task给taskServerList中的随机一个!
-   * @param currentUuid  ScheduleServer的UUID  
-   * @param taskServerList ScheduleServer列表
+   * 
+   * @param currentUuid
+   *          ScheduleServer的UUID
+   * @param taskServerList
+   *          ScheduleServer列表
    * @throws Exception
    */
   public void assignTask(String currentUuid, List<String> taskServerList) throws Exception;
 
-  public boolean isOwner(String taskName, String uuid) throws Exception;
+  public boolean isOwner(String taskName, String taskDesc, String uuid) throws Exception;
 
   public void addTask(String name) throws Exception;
 
   public void deleteTask(String name) throws Exception;
-  
+
   public void deleteTaskOwner(String taskName, String uuid) throws Exception;
 }

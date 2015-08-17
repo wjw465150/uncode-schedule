@@ -340,7 +340,15 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
         boolean isOwner = false;
         try {
           if (ZKScheduleManager.getInstance().getZkManager().isZookeeperConnected() && ZKScheduleManager.getInstance().isRegisted()) {
-            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
+            String taskDesc = null;
+            if (trigger instanceof org.quartz.CronTrigger) {
+              taskDesc = "Quartz:CronTrigger:" + ((org.quartz.CronTrigger) trigger).getCronExpression();
+            } else if (trigger instanceof org.quartz.SimpleTrigger) {
+              taskDesc = "Quartz:SimpleTrigger";
+            } else {
+              taskDesc = "Quartz:OtherTrigger";
+            }
+            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(taskName, taskDesc, ZKScheduleManager.getInstance().getScheduleServerUUid());
           }
         } catch (org.apache.zookeeper.KeeperException.NoNodeException ex) { //@wjw_note: NoNodeException异常说明系统还没有初始化好,忽略此异常!
         } catch (Exception e) {

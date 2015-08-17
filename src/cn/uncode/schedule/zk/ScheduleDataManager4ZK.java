@@ -324,7 +324,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
   }
 
   @Override
-  public boolean isOwner(String taskName, String uuid) throws Exception {
+  public boolean isOwner(String taskName,  String taskDesc, String uuid) throws Exception {
     Stat tempStat = null;
     //查看集群中是否注册当前任务，如果没有就自动注册
     String zkPath = this.pathTask + "/" + taskName;
@@ -355,11 +355,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     zkPath = zkPath + "/" + uuid;
     if (this.getZooKeeper().exists(zkPath, false) != null) {
       //@wjw_note: 写一些数据
-      String desc = "Quartz";
-      if (taskName.startsWith("SpringScheduler.")) {
-        desc = "SpringScheduler";
-      }
-      ScheduleTask task = new ScheduleTask(taskName, uuid, desc, new Timestamp(this.getSystemTime()));
+      ScheduleTask task = new ScheduleTask(taskName, uuid, taskDesc, new Timestamp(this.getSystemTime()));
       this.refreshScheduleTask(task);
 
       return true;
