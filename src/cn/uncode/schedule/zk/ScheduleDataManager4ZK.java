@@ -325,14 +325,29 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
   @Override
   public boolean isOwner(String taskName, String uuid) throws Exception {
+    Stat tempStat = null;
     //查看集群中是否注册当前任务，如果没有就自动注册
     String zkPath = this.pathTask + "/" + taskName;
     if (this.zkManager.isAutoRegisterTask()) {
-      if (this.getZooKeeper().exists(zkPath, false) == null) {
+      tempStat = this.getZooKeeper().exists(zkPath, false);
+      if (tempStat == null) {
         this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
+        tempStat = this.getZooKeeper().exists(zkPath, false);
         if (LOG.isDebugEnabled()) {
           LOG.debug(uuid + ":自动向集群注册任务[" + taskName + "]");
         }
+      }
+    }
+
+    //@wjw_note: 当task下的子节点为空时,进行等待,防止错过执行!
+    if (tempStat.getNumChildren() == 0) {
+      int sleepCount = 0;
+      Thread.sleep(1000);
+      tempStat = this.zkManager.getZooKeeper().exists(zkPath, false);
+      while (tempStat.getNumChildren() == 0 && sleepCount < 100) {
+        sleepCount++;
+        Thread.sleep(1000);
+        tempStat = this.zkManager.getZooKeeper().exists(zkPath, false);
       }
     }
 
