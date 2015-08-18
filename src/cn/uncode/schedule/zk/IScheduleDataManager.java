@@ -72,7 +72,7 @@ public interface IScheduleDataManager {
    */
   public void assignTask(String currentUuid, List<String> taskServerList) throws Exception;
 
-  public boolean isOwner(String taskName, String taskDesc, String uuid) throws Exception;
+  public boolean isOwner(ScheduleTask scheduleTask) throws Exception;
 
   public void addTask(String name) throws Exception;
 

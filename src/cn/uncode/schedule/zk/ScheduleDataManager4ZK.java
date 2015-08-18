@@ -324,17 +324,17 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
   }
 
   @Override
-  public boolean isOwner(String taskName,  String taskDesc, String uuid) throws Exception {
+  public boolean isOwner(ScheduleTask scheduleTask) throws Exception {
     Stat tempStat = null;
     //查看集群中是否注册当前任务，如果没有就自动注册
-    String zkPath = this.pathTask + "/" + taskName;
+    String zkPath = this.pathTask + "/" + scheduleTask.getName();
     if (this.zkManager.isAutoRegisterTask()) {
       tempStat = this.getZooKeeper().exists(zkPath, false);
       if (tempStat == null) {
         this.getZooKeeper().create(zkPath, null, this.zkManager.getAcl(), CreateMode.PERSISTENT);
         tempStat = this.getZooKeeper().exists(zkPath, false);
         if (LOG.isDebugEnabled()) {
-          LOG.debug(uuid + ":自动向集群注册任务[" + taskName + "]");
+          LOG.debug(scheduleTask.getUuid() + ":自动向集群注册任务[" + scheduleTask.getName() + "]");
         }
       }
     }
@@ -352,11 +352,10 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     }
 
     //判断是否分配给当前节点
-    zkPath = zkPath + "/" + uuid;
+    zkPath = zkPath + "/" + scheduleTask.getUuid();
     if (this.getZooKeeper().exists(zkPath, false) != null) {
       //@wjw_note: 写一些数据
-      ScheduleTask task = new ScheduleTask(taskName, uuid, taskDesc, new Timestamp(this.getSystemTime()));
-      this.refreshScheduleTask(task);
+      this.refreshScheduleTask(scheduleTask);
 
       return true;
     }

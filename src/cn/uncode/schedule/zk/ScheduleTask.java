@@ -9,20 +9,10 @@ import java.sql.Timestamp;
  * 
  */
 public class ScheduleTask {
-  @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("ScheduleTask [name=");
-    builder.append(name);
-    builder.append(", uuid=");
-    builder.append(uuid);
-    builder.append(", desc=");
-    builder.append(desc);
-    builder.append(", lastfireTime=");
-    builder.append(lastfireTime);
-    builder.append("]");
-    return builder.toString();
-  }
+  private String name;
+  private String uuid;
+  private String desc;
+  private Timestamp lastfireTime;
 
   public ScheduleTask(String name, String uuid, String desc, Timestamp lastfireTime) {
     super();
@@ -64,8 +54,18 @@ public class ScheduleTask {
     this.lastfireTime = lastfireTime;
   }
 
-  private String name;
-  private String uuid;
-  private String desc;
-  private Timestamp lastfireTime;
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("ScheduleTask [name=");
+    builder.append(name);
+    builder.append(", uuid=");
+    builder.append(uuid);
+    builder.append(", desc=");
+    builder.append(desc);
+    builder.append(", lastfireTime=");
+    builder.append(lastfireTime);
+    builder.append("]");
+    return builder.toString();
+  }
 }

@@ -1,6 +1,7 @@
 package cn.uncode.schedule;
 
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import cn.uncode.schedule.util.ScheduleUtil;
 import cn.uncode.schedule.zk.IScheduleDataManager;
 import cn.uncode.schedule.zk.ScheduleDataManager4ZK;
 import cn.uncode.schedule.zk.ScheduleServer;
+import cn.uncode.schedule.zk.ScheduleTask;
 import cn.uncode.schedule.zk.ZKManager;
 
 /**
@@ -348,7 +350,9 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
             }
             if (zkManager.isZookeeperConnected()) {
               String taskDesc = "Spring:Task";
-              isOwner = scheduleDataManager.isOwner(taskName, taskDesc, currenScheduleServer.getUuid());
+              ScheduleTask scheduleTask = new ScheduleTask(taskName, currenScheduleServer.getUuid(), taskDesc, new Timestamp(System.currentTimeMillis()));
+
+              isOwner = scheduleDataManager.isOwner(scheduleTask);
             }
           } catch (Exception e) {
             LOG.error("Check task owner error.", e);

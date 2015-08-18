@@ -18,6 +18,7 @@ package cn.uncode.schedule.quartz;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
@@ -50,6 +51,7 @@ import org.springframework.util.MethodInvoker;
 import org.springframework.util.ReflectionUtils;
 
 import cn.uncode.schedule.ZKScheduleManager;
+import cn.uncode.schedule.zk.ScheduleTask;
 
 /**
  * {@link org.springframework.beans.factory.FactoryBean} that exposes a
@@ -348,7 +350,8 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
             } else {
               taskDesc = "Quartz:OtherTrigger";
             }
-            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(taskName, taskDesc, ZKScheduleManager.getInstance().getScheduleServerUUid());
+            ScheduleTask scheduleTask = new ScheduleTask(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid(), taskDesc, new Timestamp(System.currentTimeMillis()));
+            isOwner = ZKScheduleManager.getInstance().getScheduleDataManager().isOwner(scheduleTask);
           }
         } catch (org.apache.zookeeper.KeeperException.NoNodeException ex) { //@wjw_note: NoNodeException异常说明系统还没有初始化好,忽略此异常!
         } catch (Exception e) {
