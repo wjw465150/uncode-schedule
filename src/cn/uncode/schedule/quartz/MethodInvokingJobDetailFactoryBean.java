@@ -363,11 +363,15 @@ public class MethodInvokingJobDetailFactoryBean extends ArgumentConvertingMethod
           ZKScheduleManager.getInstance().getTaskRunCountMap().put(taskName, fireCount);
 
           ReflectionUtils.invokeMethod(setResultMethod, context, this.methodInvoker.invoke());
-          LOG.debug("Cron job has been executed.");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Cron job has been executed.");
+          }
 
           //@wjw_note: 添加让出逻辑!
           if ((fireCount % ZKScheduleManager.getInstance().getReAssignTaskThreshold()) == 0) {
-            LOG.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Task Owner[" + taskName + "/" + ZKScheduleManager.getInstance().getScheduleServerUUid() + "]执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+            }
             ZKScheduleManager.getInstance().getScheduleDataManager().deleteTaskOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
           }
         }

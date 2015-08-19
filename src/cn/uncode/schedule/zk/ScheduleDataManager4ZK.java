@@ -232,12 +232,12 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 
     if (this.isLeader(currentUuid, taskServerList) == false) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug(currentUuid + ":不是负责任务分配的Leader,直接返回");
+        LOG.debug("节点[" + currentUuid + "],不是负责任务分配的Leader,直接返回");
       }
       return;
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug(currentUuid + ":开始重新分配任务......");
+      LOG.debug("Leader节点[" + currentUuid + "],开始重新分配任务......");
     }
 
     if (taskServerList.size() <= 0) {
@@ -252,7 +252,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
     List<String> taskChildren = this.getZooKeeper().getChildren(zkPath, false);
     if (null == taskChildren || taskChildren.size() == 0) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug(currentUuid + ":没有集群任务");
+        LOG.debug("节点[" + currentUuid + "],没有集群任务!");
       }
       return;
     }
@@ -274,7 +274,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
             continue;
           }
 
-          LOG.warn("删除僵尸Task Runner: " + taskPath + "/" + serverId);
+          LOG.warn("删除僵尸Task Owner[" + taskPath + "/" + serverId + "]");
           ZKTools.deleteTree(this.getZooKeeper(), taskPath + "/" + serverId); //@wjw_note: 删除某一节点已经死掉的残留下来的僵尸task!
         }
         if (hasAssignSuccess == false) {

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ZKManager {
   private static transient Logger LOG = LoggerFactory.getLogger(ZKManager.class);
-  
+
   private ZooKeeper zk;
   private List<ACL> acl = new ArrayList<ACL>();
   private Properties properties;
@@ -150,9 +150,9 @@ public class ZKManager {
       } else {
         String dataVersion = new String(value);
         if (Version.isCompatible(dataVersion) == false) {
-          throw new Exception("Schedule程序版本 " + Version.getVersion() + " 不兼容Zookeeper中的数据版本 " + dataVersion);
+          throw new Exception("Schedule程序版本[ " + Version.getVersion() + "],不兼容Zookeeper中的数据版本 [" + dataVersion + "]");
         }
-        LOG.info("当前的程序版本:" + Version.getVersion() + " 数据版本: " + dataVersion);
+        LOG.info("当前的程序版本[" + Version.getVersion() + "],数据版本[" + dataVersion + "]");
       }
     }
   }

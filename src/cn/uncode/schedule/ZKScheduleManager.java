@@ -59,11 +59,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   protected ScheduleServer currenScheduleServer;
 
   /**
-   * 是否启动调度管理，如果只是做系统管理，应该设置为false
-   */
-  public boolean start = true;
-
-  /**
    * 心跳间隔
    */
   private int timerInterval = 3000;
@@ -98,7 +93,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
   private Timer hearBeatTimer;
   protected Lock initLock = new ReentrantLock();
-  protected boolean isStopSchedule = false;
   protected Lock registerLock = new ReentrantLock();
 
   volatile String errorMessage = "No config Zookeeper connect infomation";
@@ -141,13 +135,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     }
   }
 
-  public void reInit(Properties properties) throws Exception {
-    if (this.start == true || this.hearBeatTimer != null) {
-      throw new Exception("调度器有任务处理，不能重新初始化");
-    }
-    this.init(properties);
-  }
-
   public void init(Properties properties) throws Exception {
     if (this.initialThread != null) {
       this.initialThread.stopThread();
@@ -165,7 +152,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         TimeUnit.SECONDS.sleep(1);
       }
 
-      this.errorMessage = "Zookeeper connecting ......" + this.zkManager.getConnectStr();
+      this.errorMessage = "Zookeeper connecting[" + this.zkManager.getConnectStr() + "]";
       initialThread = new InitialThread(this);
       initialThread.setName("ScheduleManager-initialThread");
       initialThread.start();
@@ -219,13 +206,6 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   public void rewriteScheduleInfo() throws Exception {
     registerLock.lock();
     try {
-      if (this.isStopSchedule == true) {
-        if (LOG.isDebugEnabled()) {
-          LOG.warn("外部命令终止调度,不在注册调度服务，避免遗留垃圾数据：" + currenScheduleServer.getUuid());
-        }
-        return;
-      }
-
       // 先发送心跳信息
       if (errorMessage != null) {
         this.currenScheduleServer.setDealInfoDesc(errorMessage);
@@ -266,7 +246,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     List<String> serverList = scheduleDataManager.loadScheduleServerNames();
     if (scheduleDataManager.isLeader(this.currenScheduleServer.getUuid(), serverList) == false) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug(this.currenScheduleServer.getUuid() + ":不是负责任务分配的Leader,直接返回");
+        LOG.debug(this.currenScheduleServer.getUuid() + ",不是负责任务分配的Leader,直接返回!");
       }
       return;
     }
@@ -295,7 +275,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
    */
   public void refreshScheduleServer() throws Exception {
     try {
-      rewriteScheduleInfo();
+      this.rewriteScheduleInfo();
       // 如果任务信息没有初始化成功，不做任务相关的处理
       if (this.registed == false) {
         return;
@@ -322,14 +302,13 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   public void initialData() throws Exception {
     this.zkManager.initial();
     this.scheduleDataManager = new ScheduleDataManager4ZK(this.zkManager);
-    if (this.start == true) {
-      // 注册调度管理器
-      this.scheduleDataManager.registerScheduleServer(this.currenScheduleServer);
-      if (hearBeatTimer == null) {
-        hearBeatTimer = new Timer("ScheduleManager-" + this.currenScheduleServer.getUuid() + "-HearBeat");
-      }
-      hearBeatTimer.schedule(new HeartBeatTimerTask(this), 2000, this.timerInterval);
+
+    // 注册调度管理器
+    this.scheduleDataManager.registerScheduleServer(this.currenScheduleServer);
+    if (hearBeatTimer == null) {
+      hearBeatTimer = new Timer("ScheduleManager-" + this.currenScheduleServer.getUuid() + "-HearBeat");
     }
+    hearBeatTimer.schedule(new HeartBeatTimerTask(this), 2000, this.timerInterval);
   }
 
   private Runnable taskWrapper(final Runnable task) {
@@ -368,7 +347,9 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
             //@wjw_note: 添加让出逻辑!
             if ((fireCount % ZKScheduleManager.getInstance().getReAssignTaskThreshold()) == 0) {
-              LOG.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Task执行次数已经达到让出阀值:[" + fireCount + "],让出执行权给其他节点!");
+              }
               try {
                 ZKScheduleManager.getInstance().getScheduleDataManager().deleteTaskOwner(taskName, ZKScheduleManager.getInstance().getScheduleServerUUid());
               } catch (Exception ex) {
@@ -421,7 +402,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         while (sm.zkManager.isZookeeperConnected() == false) {
           count = count + 1;
           if (count % 50 == 0) {
-            sm.errorMessage = "Zookeeper connecting ......" + sm.zkManager.getConnectStr() + " spendTime:" + count * 20 + "(ms)";
+            sm.errorMessage = "Zookeeper connecting[" + sm.zkManager.getConnectStr() + "],spendTime:" + count * 20 + "(ms)";
             log.error(sm.errorMessage);
           }
           Thread.sleep(20);
