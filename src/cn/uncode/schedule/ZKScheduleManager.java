@@ -78,6 +78,22 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
   }
 
   /**
+   * 删除垃圾Task延迟时间,单位:秒,缺省延迟30分钟.
+   */
+  private int deleteGarbageTaskDelay = 30 * 60; //单位秒
+
+  public int getDeleteGarbageTaskDelay() {
+    return deleteGarbageTaskDelay;
+  }
+
+  public void setDeleteGarbageTaskDelay(int deleteGarbageTaskDelay) {
+    this.deleteGarbageTaskDelay = deleteGarbageTaskDelay;
+  }
+
+  //ZKScheduleManager启动时间
+  private long _startedTime = System.currentTimeMillis();
+
+  /**
    * 是否注册成功
    */
   private boolean registed = false;
@@ -119,6 +135,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
         String taskName = trigger.getName() + "." + trigger.getJobName();
         _taskRunCountMap.put(taskName, 0);
       }
+    } catch (org.springframework.beans.factory.NoSuchBeanDefinitionException e) {
+      //Spring配置文件里没有使用Quartz,忽略!
     } catch (Exception e) {
       LOG.warn(e.getMessage(), e);
     }
@@ -133,6 +151,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
     } catch (Exception e1) {
       throw new RuntimeException(e1);
     }
+
+    _startedTime = System.currentTimeMillis();
   }
 
   public void init(Properties properties) throws Exception {
@@ -163,6 +183,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
   @Override
   public void destroy() {
+    _startedTime = System.currentTimeMillis();
     try {
       if (this.initialThread != null) {
         try {
@@ -251,8 +272,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
       return;
     }
 
-    //@wjw_note: 添加主动清理Quartz类型的遗留下来的垃圾task
-    if (_taskRunCountMap.size() > 0) {
+    //@wjw_note: 添加主动清理Quartz类型的遗留下来的垃圾task,这要求集群里的Job配置要完全一致!
+    if (((System.currentTimeMillis() - _startedTime) > (deleteGarbageTaskDelay * 1000)) && (_taskRunCountMap.size() > 0)) {
       List<String> zkTaskNames = scheduleDataManager.loadTaskNames();
       for (String zkTaskName : zkTaskNames) {
         if (_taskRunCountMap.containsKey(zkTaskName) == false) {
@@ -262,7 +283,7 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
       }
     }
 
-    // 设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
+    //非常重要的,分配任务!
     scheduleDataManager.assignTask(this.currenScheduleServer.getUuid(), serverList);
   }
 
@@ -333,6 +354,8 @@ public class ZKScheduleManager extends ThreadPoolTaskScheduler implements Applic
 
               isOwner = scheduleDataManager.isOwner(scheduleTask);
             }
+          } catch (InterruptedException e) {
+            LOG.debug("Check task owner error.", e);
           } catch (Exception e) {
             LOG.error("Check task owner error.", e);
           }

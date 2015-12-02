@@ -10,7 +10,7 @@ public class SimpeTestNode_2 {
   public static void main(String[] args) throws InterruptedException {
     ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext2.xml");
 
-    Thread.sleep(300000 * 1000);
+    Thread.sleep(30 * 1000);
 
     context.stop();
     context.close();

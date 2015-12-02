@@ -37,13 +37,11 @@
 2 xml配置
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-        http://www.springframework.org/schema/task
-        http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" 
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/task  http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
 	<!-- 分布式任务管理器 -->
 	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
@@ -58,6 +56,7 @@
 			</map>
 		</property>
 		<property name="reAssignTaskThreshold" value="10" />
+		<property name="deleteGarbageTaskDelay" value="#{30*60}" />
 	</bean>
 
 
@@ -109,7 +108,7 @@
 				  <entry key="zkSessionTimeout" value="60000" />
 				  <entry key="userName" value="ScheduleAdmin" />
 				  <entry key="password" value="123456" />
-				  <entry key="isCheckParentPath" value="true" />
+				  <entry key="autoRegisterTask" value="true" />
 			   </map>
 		</property>
 	</bean>
@@ -123,13 +122,11 @@
 # 2. 基于Quartz的XML配置
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-        http://www.springframework.org/schema/task
-        http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" 
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/task  http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
 
 	<bean id="zkScheduleManager" class="cn.uncode.schedule.ZKScheduleManager">
@@ -144,6 +141,7 @@
 			</map>
 		</property>
 		<property name="reAssignTaskThreshold" value="10" />
+		<property name="deleteGarbageTaskDelay" value="#{30*60}" />
 	</bean>
 
 	<!-- Quartz SchedulerFactoryBean -->
